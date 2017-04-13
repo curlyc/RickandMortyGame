@@ -1,6 +1,5 @@
 
 // Celine Binder
-// with some tweaks by curly
 // 27th Feb 2017
 // Simple Text Adventure
 
@@ -34,6 +33,9 @@ const unsigned char littlemorty[] PROGMEM  = {
 
 const unsigned char playerrick[] PROGMEM  = {
 0x00, 0x10, 0x28, 0x44, 0x88, 0xf4, 0x12, 0x9, 0xa, 0xac, 0x8a, 0x71, 0xa, 0x4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc, 0x2, 0xff, 0x9, 0x9, 0xff, 0x2, 0x4, 0x00, 0x00, 0x00, 0x00, 
+};
+const unsigned char playerrickbg[] PROGMEM  = {
+0x00, 0x10, 0x38, 0x7c, 0xf8, 0xfc, 0xfe, 0xff, 0xfe, 0xfc, 0xfe, 0x7f, 0xe, 0x4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc, 0x2, 0xff, 0xf, 0xf, 0xff, 0x2, 0x4, 0x00, 0x00, 0x00, 0x00, 
 };
 
 const unsigned char playermorty[] PROGMEM  = {
@@ -77,9 +79,11 @@ void loop() {
       if (ab.everyXFrames(3) && (locx >= 95)){
         locy +=1;
       }
+      
         ab.drawFastHLine(0,57,100,WHITE);
         ab.drawFastVLine(100,57,64,WHITE);
         ab.drawBitmap(70, 0, megatree, 24, 56, WHITE);
+        ab.drawBitmap(locx, locy, playerrickbg, 16, 16, BLACK);
         ab.drawBitmap(locx, locy, playerrick, 16, 16, WHITE);
       if (locy >= 65) {
         gameProgress = GAME_START;
@@ -87,7 +91,12 @@ void loop() {
       }
       //arduboy.setCursor (0, 50);
       //arduboy.print("You Win!");
-      if (ab.justPressed(A_BUTTON | B_BUTTON)) gameProgress = GAME_START;
+      //jump
+      if (ab.justPressed(A_BUTTON | B_BUTTON) && (locy == 41)) { locy -= 16;}
+      //if above floor come back down
+      if (locy <= 40){
+        locy +=1;
+      }
       break;
     case PLAYER_TWO:
       ab.drawFastHLine(0,57,100,WHITE);
