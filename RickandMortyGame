@@ -1,8 +1,7 @@
 
 // Celine Binder && Curly
-//as curly puts in all the games he works on, thanks crait for tochars
 // 27th Feb 2017
-// Simple Adventure
+// Simple Text Adventure
 
 #include <Arduboy2.h>
 Arduboy2 ab;
@@ -58,7 +57,7 @@ const unsigned char brokemort[] PROGMEM  = {
 };
 
 
-void lvl0() {
+void lvl0() { //this is where we create lvl 0, same thing for each lcl but change the floorz and the tree location
         mtlocx = 0;
         mtlocy = 0;
         if (locx == 0) {
@@ -67,28 +66,20 @@ void lvl0() {
           locx2 = (locx +10);
           locy2 = 29;
         }
-      //if (ab.everyXFrames(3) && (locx2 <= 100)){ //if morty hasnt fallen off the cliff yet walk him to the cliff
-       // locx2 +=1;
-     // }
-    //  if (ab.everyXFrames(3) && (locx2 >= 100)){ //if morty is over the edge of the cliff make him fall down
-      //  locy2 +=1;
-     // }
-
-
         ab.drawFastHLine(100,30,120,WHITE);
         ab.drawFastHLine(0,57,100,WHITE);
         ab.drawFastVLine(100,30,65,WHITE);
         ab.drawBitmap(mtlocx, mtlocy, megatree, 24, 56, WHITE);
         if (locx <= 99) {
-          floorz = 58;
+          floorz = 41;
         }
         if (locx > 100) {
-          floorz = 29;
+          floorz = 13;
         }
         
 }
 
-void lvl() {
+void lvl() { //here is where we call the current lvl
        if (lvlz == 0) {
         lvl0();
        }
@@ -123,13 +114,13 @@ void loop() {
       if (locx >= 1 && ab.pressed(LEFT_BUTTON)){
         locx -=1;
       }
-      ab.setCursor (102, 31);
+      ab.setCursor (102, 31); // testing purposes to be removed later
       ab.print(locy);
       ab.setCursor (102, 40);
       ab.print(floorz);
       ab.setCursor (102, 50);
-      ab.print(locx);
-        lvl();
+      ab.print(locx); //end of test stuff to be removed
+        lvl(); //selects and calls the proper lvl
         //ab.drawFastHLine(0,57,100,WHITE);
         //ab.drawFastVLine(100,57,64,WHITE);
         //ab.drawBitmap(70, 0, megatree, 24, 56, WHITE);
@@ -148,11 +139,11 @@ void loop() {
       //jump
       if (ab.justPressed(A_BUTTON) && (locy == floorz)) { locy -= 16;}
       //if above floor come back down
-      if (locy >= floorz){
+      if (locy < floorz){ //probably dont need the =
         locy +=1;
       }
       break;
-    case PLAYER_TWO:
+    case PLAYER_TWO: //this is being swapped out for the pause menu
       ab.drawFastHLine(0,57,100,WHITE);
       ab.drawFastVLine(100,57,64,WHITE);
       ab.drawBitmap(70, 0, megatree, 24, 56, WHITE);
