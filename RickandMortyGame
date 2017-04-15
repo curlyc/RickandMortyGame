@@ -2,7 +2,7 @@
 // Celine Binder && Curly
 // 27th Feb 2017
 // Simple Text Adventure
-
+//128 x 64
 #include <Arduboy2.h>
 Arduboy2 ab;
 #include <ATMlib.h>
@@ -13,15 +13,23 @@ ATMsynth ATM;
 #define PAUSE                     3 // pause
 #define PLAYER_TWO_LOSE           4 // lose
 byte gameProgress = 0;
-int locx = 200;
-int locy = 0;
+int locx = 0;
+int locy = 12;
 int locx2 = 0;
-int locy2 = 0;
-int rickhp = 1;
+int locy2 = 12;
+
+int walocx = 13; //side of cliff
+int walwid = 39; //width of cliff
+int walocyt = 30; //top of cliff
+int mainfl = 56; //main floor
+
+int rickhp = 1; //dont fall the first few lvls :P
 int mortyhp = 1;
-int mtlocx = 0;
+
+int mtlocx = 104;
 int mtlocy = 0;
 int mts = 0;
+
 int psel = 0;
 int lvlz = 0;
 int floorz = 99;
@@ -78,120 +86,170 @@ const unsigned char brokemort[] PROGMEM  = {
 };
 
 
-void lvl0() { //this is where we create lvl 0, same thing for each lcl but change the floorz and the tree location
-        if (screen == 0) {
-        mtlocx = 0;
-        mtlocy = 0;
-        }
-        if ((locx == 200)&& mortyhp >= 1) {
-          locx = 101;
-          locy = 13;
-          locx2 = (110);
-          locy2 = 13;
-          leftlim = 0;
-        }
-        ab.drawFastHLine(100,30,120,WHITE);
-        ab.drawFastHLine(0,57,100,WHITE);
-        ab.drawFastVLine(100,30,65,WHITE);
+void lvl0() { //this is where we create lvl 0, same thing for each lvl but change the floorz and the tree location
+        //draw upper lvl
+        ab.drawFastHLine(0,walocyt,walwid,WHITE);
+        //draw lower lvl
+        ab.drawFastHLine(walwid,mainfl,120,WHITE);
+        //
+        ab.drawFastVLine(walwid,walocyt,(mainfl - walocyt),WHITE); //here dummy
+       //draw mega treee
         if (mts == 0) {
         ab.drawBitmap(mtlocx, mtlocy, megatree, 24, 56, WHITE);
         }
         if (mts == 1) {
         ab.drawBitmap(mtlocx, mtlocy, megatreeempty, 24, 56, WHITE);
         }
-        if (locx <= 89 && locx >= 14) { //defines the floor
-          floorz = 41;
-          
+        //FLOOR ON CLIFF RICK
+        if (locx <= walwid && (locx < mtlocx)) { 
+          floorz = (walocyt - 16);  
         }
-        if (locx2 <= 89 && locx2 >= 14) { //defines the floor woah dude this might work
-          floorz2 = 41;
-          
+        //FLOOR ON CLIFF MORTY
+        if (locx2 <= walwid && (locx2 < mtlocx)) { 
+          floorz2 = (walocyt - 16);  
         }
-        if (locx > 89) { 
-          floorz = 13; // defines the floor if locx is more than 89
+         //FLOOR NOT ON CLIFF RICK
+        if (locx > walwid) { 
+          floorz = (mainfl -16); // defines the floor not on the wall
           rightlim = 111;
         }
-        if (locx2 > 89) { 
-          floorz2 = 13; // defines the floor if locx2 is more than 89
+        //FLOOR NOT ON CLIFF MORTY
+        if (locx2 > walwid) { 
+          floorz2 = (mainfl -16); // defines the floor not on the wall
           rightlim2 = 111;
         }
-        if (locx <= 89) { //at or past gateway to upper lvl
+        //rick left limmit
+        if (locx <= walwid) { //at or past cliffwall to upper lvl rick
             
-            if (locy > 13){ //if below the top lvl
-              rightlim = 89;
+            if (locy < (walocyt)){ //if below the top lvl 
+              leftlim = 0;
             }
-            if (locy <= 13){ //if below the top lvl
-              rightlim = 111;
+            if (locy > (walocyt - 16)){ //if below the top lvl  //THIS MAY BE WRONG!!!
+              leftlim = walwid;
             }
                 
       
-          } 
-          if (locx2 <= 89) { //at or past gateway to upper lvl
+          }
+          //morty left limmit
+        if (locx2 <= walwid) { //at or past cliffwall to upper lvl morty
             
-            if (locy2 > 13){ //if below the top lvl
-              rightlim2 = 89;
+            if (locy2 < (walocyt)){ //if below the top lvl 
+              leftlim2 = 0;
             }
-            if (locy2 <= 13){ //if below the top lvl
-              rightlim2 = 111;
+            if (locy2 > (walocyt - 16)){ //if below the top lvl //THIS MAY BE WRONG!!!
+              leftlim2 = walwid;
             }
                 
       
-          }        
-       if (locx == 89){ //climb up and down the cliff
-            downlim = 41;
-            uplim = 13;
-            if (locy == 13){
-              ab.setCursor (locx, (locy - 10)); 
-      ab.print("!");
+          }
+                //rick cliff climb 
+       if (locx == (walwid)){ //climb up and down the cliff 89
+            downlim = (mainfl - 16);
+            uplim = (walocyt - 16);
+            if (locy == (walocyt - 16)){ //at the top
+              ab.setCursor (50, 10); 
+              ab.print("!");
             }
-             if (locy == 41){
-              ab.setCursor (locx, (locy - 10)); 
-      ab.print("i");
+             if (locy == (mainfl - 16)){ //at the bottom
+              ab.setCursor (50, 10); 
+              ab.print("i");
+              fallbuff = 0; //if you catch yourself before you hit the ground take no dammage
             }
           }
-          if ((locx >= 0) && (locx <= 12)){ //rick climb up and down the mega tree
-            downlim = 41;
-            uplim = 13;
+                 //morty cliff climb 
+       if (locx2 == (walwid)){ //climb up and down the cliff 89
+            downlim2 = (mainfl - 16);
+            uplim2 = (walocyt - 16);
+            if (locy2 == (walocyt - 16)){ //at the top
+              ab.setCursor (50, 10); 
+              ab.print("!");
+            }
+             if (locy2 == (mainfl - 16)){ //at the bottom
+              ab.setCursor (50, 10); 
+              ab.print("i");
+              fallbuff2 = 0; //if you catch yourself before you hit the ground take no dammage
+            }
+          }
+
+          //rick mega tree
+          if ((locx >= (mtlocx - 5)) && (locx <= (mtlocx + 24))){ //rick climb up and down the mega tree
+            downlim = (mainfl - 16);
+            uplim = 0; 
             
-            if (locy == 13) {
-              ab.setCursor (locx, (locy - 10)); 
+            if (locy == 13) { //if at the top of mega tree
+              ab.setCursor (50, 10);  //put this in middle of screen for better visibility
               ab.print("!");
               
                if (mts == 0) {
                 mts = 1;
+                rickhp += 5;
                }
             }
-          
+          if (locy == (mainfl - 16)){ //at the bottom
+              ab.setCursor (locx, (locy - 10)); 
+              ab.print("i");
+              fallbuff = 0; //if rick catches himself before you hit the ground take no dammage
+            }
          }
-          if ((locx2 >= 0) && (locx2 <= 12)){ //morty climb up and down the mega tree
-            downlim2 = 41;
-            uplim2 = 13;
-            if (locy2 == 13){
-              ab.setCursor (locx2, (locy2 - 10)); 
+         //morty mega tree
+         if ((locx2 >= (mtlocx - 5)) && (locx2 <= (mtlocx + 24))){ //morty climb up and down the mega tree
+            downlim2 = (mainfl - 16);
+            uplim2 = 0; 
+            
+            if (locy2 == 13) { //if at the top of mega tree
+              ab.setCursor (50, 10);  //put this in middle of screen for better visibility
               ab.print("!");
+              
                if (mts == 0) {
                 mts = 1;
+                mortyhp += 5;
                }
             }
-             if (locy2 == 41){
-              ab.setCursor (locx2, (locy2 - 10)); 
-      ab.print("i");
+          if (locy2 == (mainfl - 16)){ //at the bottom
+              ab.setCursor (50, 10); 
+              ab.print("i");
+              fallbuff2 = 0; //if morty catch himself before you hit the ground take no dammage
             }
-          }
-       if (locx != 89 && (locx > 13)) { //this needs worrrrrk 
+         }
+          // if at a place you can climb disable the auto fall
+       if (locx != walwid && (locx < (mtlocx - 4))) { //for rick
             downlim = 0;
             uplim = 0;
          }
-       if (locx2 != 89 && (locx2 > 13)) { //this needs worrrrrk 
+       if (locx2 != walwid && (locx2 < (mtlocx - 4))) { //for morty
             downlim2 = 0;
             uplim2 = 0;
          }
-       // } dont think i need this one
+
+       //go to next lvl
+       if (psel == 0 && mts == 1 && locx >= mtlocx && locy == (mainfl - 16)) { //if rick finishes lvl0
+        locx = 0;
+        locy = 12;//back to start point
+        mts = 0;
+        psel = 1;
+        fallbuff = 0;
+       }
+       if (psel == 1 && mts == 1 && locx2 >= mtlocx && locy2 == (mainfl - 16)) { //if rick finishes lvl0
+        locx2 = 0;
+        locy2 = 12;//back to start point
+        mts = 0;
+        psel = 0;
+        fallbuff2 = 0;
+       }
+       
+       
+} // end lvl 0
+void lvl1() {
+  ab.setCursor (0, 31); 
+      ab.print("woot lvl1");
 }
 
 void lvl() { //here is where we call the current lvl
        if (lvlz == 0) {
         lvl0();
+       }
+       if (lvlz == 1) {
+        lvl1();
        }
 }
 #define Song const uint8_t PROGMEM
@@ -605,66 +663,100 @@ void loop() {
           locy2 +=1;
         }
       //}
-      ab.setCursor (102, 31); // testing purposes to be removed later
-      ab.print(locy);
-      ab.setCursor (115, 31); 
-      ab.print("y");
-      ab.setCursor (102, 40);
-      ab.print(floorz);
       
-      ab.setCursor (102, 50);
-      ab.print(locx);
+      ab.setCursor (65, 10);
+      ab.print(rickhp);
+      //ab.setCursor (65, 10);
+      //ab.print(rightlim);
+      //ab.setCursor (50, 0);
+      //ab.print(locy);
+      //ab.setCursor (50, 10);
+      //ab.print(floorz);
+      //ab.setCursor (10, 31); // testing purposes to be removed later
+      //ab.print(locy);
+      //ab.setCursor (0, 31); 
+      //ab.print("y");
+      // ab.setCursor (10, 41); // testing purposes to be removed later
+      //ab.print(locx);
+     // ab.setCursor (0, 41); 
+     // ab.print("x");
+     // ab.setCursor (0, 50);
+     // ab.print(floorz);
+     // ab.setCursor (30, 50);
+     // ab.print(mtlocx);
       
-      ab.setCursor (0, 58); 
-      ab.print("l");
-      ab.setCursor (10, 58); 
-      ab.print(leftlim);
-      ab.setCursor (30, 58); 
-      ab.print("r");
-      ab.setCursor (40, 58); 
-      ab.print(rightlim);
-      ab.setCursor (60, 58); 
-      ab.print("u");
-      ab.setCursor (70, 58); 
-      ab.print(uplim);
-      ab.setCursor (90, 58); 
-      ab.print("d");
-      ab.setCursor (100, 58); 
-      ab.print(downlim);
+      //ab.setCursor (0, 38); 
+      //ab.print("l");
+      //ab.setCursor (10, 38); 
+     // ab.print(leftlim);
+      //ab.setCursor (30, 48); 
+      //ab.print("r");
+      //ab.setCursor (40, 48); 
+      //ab.print(rightlim);
+      //ab.setCursor (60, 58); 
+      //ab.print("u");
+      //ab.setCursor (50, 50); 
+      //ab.print(uplim);
+      //ab.setCursor (90, 58); 
+      //ab.print("d");
+      //ab.setCursor (100, 58); 
+      //ab.print(downlim);
       //ab.setCursor (60, 0); 
       //ab.print(gurp);
       //end of test stuff to be removed
         lvl(); //selects and calls the proper lvl
         
-        ab.drawBitmap(locx, locy, playerrickbg, 16, 16, BLACK);
-        ab.drawBitmap(locx, locy, playerrick, 16, 16, WHITE);
-        ab.drawBitmap(locx2, locy2, playermortybg, 16, 16, BLACK);
-        ab.drawBitmap(locx2, locy2, playermorty, 16, 16, WHITE);
-      if (locy >= 65) {
-      locx = 0;
-      locy = 41; //resets location after death
-        gameProgress = GAME_START;
-        
-      }
+        if (psel == 0) {  ab.setCursor (65, 10);
+                          ab.print(rickhp);
+                          ab.drawBitmap(locx, locy, playerrickbg, 16, 16, BLACK);
+                          ab.drawBitmap(locx, locy, playerrick, 16, 16, WHITE); }
+        if (psel == 1) {  ab.setCursor (65, 10);
+                          ab.print(mortyhp);
+                          ab.drawBitmap(locx2, locy2, playermortybg, 16, 16, BLACK);
+                          ab.drawBitmap(locx2, locy2, playermorty, 16, 16, WHITE); }
+      
       //arduboy.setCursor (0, 50);
       //arduboy.print("You Win!");
       //jump
       if (ab.justPressed(B_BUTTON)) { gameProgress = PAUSE; }
-      if (ab.justPressed(A_BUTTON)) {
+      if (ab.justPressed(A_BUTTON)) { //jump
         if ((psel == 0) && (locy == floorz)) { locy -= 16;
         }
         if ((psel == 1) && (locy2 == floorz2)) { locy2 -= 16;
         }
       }
-      //if above floor come back down
+      //if above floor come back down RICK
       if ((locy < floorz) && downlim == 0){ //probably dont need the =
         locy +=1;
+        fallbuff +=1;
       }
+      // IF ABOVE FLOOR COME BACK DOWN MORTY
       if ((locy2 < floorz2) && downlim2 == 0){ //probably dont need the =
         locy2 +=1;
+        fallbuff2 +=1;
       }
+     //if you fell to far take damage RICK
+     if (locy == floorz) {
+      if (fallbuff <= 16) {
+        fallbuff = 0;
+      }
+      if (fallbuff > 16) {
+        rickhp -= fallbuff;
+        fallbuff = 0;
+      }
+     }
+     //if you fell to far take damage MORTY
+     if (locy2 == floorz2) {
+      if (fallbuff2 <= 16) {
+        fallbuff2 = 0;
+      }
+      if (fallbuff2 > 16) {
+        mortyhp -= fallbuff2;
+        fallbuff2 = 0;
+      }
+     }
       break;
-    case PAUSE: //this is being swapped out for the pause menu
+    case PAUSE: //this is being swapped out for the pause menu 
       ab.setCursor (0, 0); 
       ab.print("left sound off");
       ab.setCursor (0, 10); 
